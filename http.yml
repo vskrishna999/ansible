@@ -1,15 +1,50 @@
 ---
 - name:  "install http"
-  hosts:  all
+  hosts:  localhost
+  become: yes
   tasks:  
   - name: "install httpd package"
     yum:
-     name:  httpd
-     state:  present
+      name:  httpd
+      state:  present
   - name: "start httpd"
     service:
-     name:  httpd
-     state:  started
+      name:  httpd
+      state:  started
+  - name:  "open port 80"
+    firewalld:
+      service:  http
+      permanent:  true
+      state:  enabled
+  - name:  "restart firewalld"
+    service:
+      name:  firewalld
+      state:  restarted
+  - name:  "config file"
+    blockinfile:
+      path:  /etc/httpd/conf.d/web.conf
+      create:  yes
+      block:  |
+        <Directory /var/www/html>
+        Require all granted
+        </Directory>
+        <VirtualHost *:80>
+        ServerName server1.example.com
+        DocumentRoot /var/www/html
+        </Virtualhost>
+  - name:  "index file"
+    blockinfile:
+      path:  /var/www/html/index.html
+      create:  yes
+      block:  |
+        sometimes i dont have a choice 
+
+  - name: httpd is restarted
+    service:
+      name: httpd
+      state: restarted
+   
+  
      
 
 
